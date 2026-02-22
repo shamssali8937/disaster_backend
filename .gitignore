@@ -1,0 +1,33 @@
+# 🔹 Virtual Environment
+venv/
+env/
+ENV/
+
+# 🔹 Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 🔹 Environment Variables
+.env
+
+# 🔹 Firebase Credentials (VERY IMPORTANT)
+firebase-service-account.json
+
+# 🔹 AI Model File
+resnet_model.pth
+
+# 🔹 OS Files
+.DS_Store
+Thumbs.db
+
+# 🔹 VS Code Settings
+.vscode/
+
+# 🔹 Logs
+*.log
+
+# 🔹 Stripe Keys
+*.pem
+*.key
