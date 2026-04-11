@@ -1,1 +1,0 @@
-from app.services.main import app
