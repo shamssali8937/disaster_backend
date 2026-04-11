@@ -25,9 +25,14 @@ RUN pip install --no-cache-dir torch==2.0.1 --index-url https://download.pytorch
 # 7. Copy the rest of your application code
 COPY . .
 
-# 8. Expose the port your app runs on
+# 8. Set PYTHONPATH to the current working directory
+# This allows 'import app' to work from main.py
+ENV PYTHONPATH=/app
+
+# 9. Expose the port
 EXPOSE 8000
 
-# 9. Command to run your FastAPI app
-# Change CMD to use the root main.py
+# 10. Change the entry point
+# Instead of pointing to the nested file, point to the root main.py
+# which is already importing the app instance.
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
