@@ -1,5 +1,5 @@
 # 1. Start with a very small Python base image
-FROM python:3.10-alpine
+FROM python:3.13-alpine
 
 # 2. Set environment variables to prevent unwanted behavior
 ENV PYTHONDONTWRITEBYTECODE=1
