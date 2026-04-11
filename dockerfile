@@ -1,5 +1,5 @@
 # 1. Start with a very small Python base image
-FROM python:3.10-alpine
+FROM python:3.13-alpine
 
 # 2. Set environment variables to prevent unwanted behavior
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -35,4 +35,4 @@ EXPOSE 8000
 # 10. Change the entry point
 # Instead of pointing to the nested file, point to the root main.py
 # which is already importing the app instance.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
