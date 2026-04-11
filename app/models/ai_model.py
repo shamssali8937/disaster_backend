@@ -13,6 +13,9 @@ class AIModel:
         self.model.load_state_dict(
             torch.load("disaster_hybrid_model.pth", map_location="cpu")
         )
+
+
+        
         self.model.eval()
 
         self.transform = transforms.Compose([
