@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import users, reports, admin, webhooks
+from app.api import reports
 
 app = FastAPI(title="Disaster Severity Detector API")
 
@@ -12,10 +12,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(users.router)
+# ✅ Only ONE router
 app.include_router(reports.router)
-app.include_router(admin.router)
-app.include_router(webhooks.router)
 
 @app.get("/")
 def root():
