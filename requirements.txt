@@ -3,5 +3,5 @@ uvicorn
 pillow
 python-multipart
 pydantic
-torch
-torchvision
+httpx
+gradio_client
