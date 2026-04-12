@@ -3,5 +3,5 @@ uvicorn
 pillow
 python-multipart
 pydantic
-torch==2.0.1
+torch
 torchvision
