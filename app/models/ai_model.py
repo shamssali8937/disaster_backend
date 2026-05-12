@@ -54,154 +54,233 @@
 
 
 
-import os
-import tempfile
-import httpx
-from gradio_client import Client, handle_file
-
-class AIModel:
-    def __init__(self):
-        # We use a longer timeout for video processing
-        self.client = Client("shamssali/disaster-ai-api")
-
-    def _guess_extension(self, data: bytes) -> str:
-        # Simple magic byte check
-        if data.startswith(b'\xff\xd8'): return '.jpg'
-        if data.startswith(b'\x89PNG'): return '.png'
-        if b'ftyp' in data[:20]: return '.mp4' # Basic video detection
-        return '.png' # Default fallback
-
-    async def analyze(self, media_bytes: bytes, filename: str = None):
-        # Determine extension
-        if filename and os.path.splitext(filename)[1]:
-            ext = os.path.splitext(filename)[1].lower()
-        else:
-            ext = self._guess_extension(media_bytes)
-
-        # Create temp file
-        temp = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
-        temp_path = temp.name
-        
-        try:
-            temp.write(media_bytes)
-            temp.close() 
-
-            # FIX: Use 'file_obj' instead of 'image'
-            result = self.client.predict(
-                file_obj=handle_file(temp_path),
-                api_name="/predict"
-            )
-            
-            disaster = result.get("disaster", "Unknown")
-            severity = result.get("severity", 0.0)
-            
-            return disaster, severity
-
-        except Exception as e:
-            print(f"AI Model Error: {e}")
-            return "Detection Error", 0.0
-            
-        finally:
-            if os.path.exists(temp_path):
-                try:
-                    os.remove(temp_path)
-                except Exception:
-                    pass 
-
-# Initialize the instance
-ai_model = AIModel()
-
-
-
-
-
-
-
-
-
-
-
-
 # import os
 # import tempfile
-# import mimetypes
 # import httpx
 # from gradio_client import Client, handle_file
 
 # class AIModel:
 #     def __init__(self):
-#         # Long timeout for video processing (15 minutes)
-#         self.timeout = httpx.Timeout(900.0, connect=900.0)
+#         # We use a longer timeout for video processing
 #         self.client = Client("shamssali/disaster-ai-api")
 
 #     def _guess_extension(self, data: bytes) -> str:
-#         """Guess file extension from magic bytes (mime type)."""
-#         # Images
-#         if data.startswith(b'\x89PNG\r\n\x1a\n'):
-#             return '.png'
-#         if data.startswith(b'\xff\xd8'):          # JPEG
-#             return '.jpg'
-#         if data.startswith(b'RIFF') and data[8:12] == b'WEBP':
-#             return '.webp'
-#         # Videos
-#         if data.startswith(b'\x00\x00\x00\x18ftypmp42') or data.startswith(b'\x00\x00\x00\x1cftypmp4'):
-#             return '.mp4'
-#         if data.startswith(b'RIFF') and data[8:12] == b'AVI ':
-#             return '.avi'
-#         if data.startswith(b'\x00\x00\x00\x1cftypqt  '):
-#             return '.mov'
-#         if data.startswith(b'\x1aE\xdf\xa3'):
-#             return '.mkv'
-#         # Default fallback
-#         return '.bin'
+#         # Simple magic byte check
+#         if data.startswith(b'\xff\xd8'): return '.jpg'
+#         if data.startswith(b'\x89PNG'): return '.png'
+#         if b'ftyp' in data[:20]: return '.mp4' # Basic video detection
+#         return '.png' # Default fallback
 
 #     async def analyze(self, media_bytes: bytes, filename: str = None):
-#         """
-#         Send media (image or video) to the Hugging Face Space.
-#         :param media_bytes: raw bytes of the file
-#         :param filename: original filename (recommended, for correct extension)
-#         :return: (disaster_type, severity)
-#         """
-#         # Determine file extension
+#         # Determine extension
 #         if filename and os.path.splitext(filename)[1]:
 #             ext = os.path.splitext(filename)[1].lower()
-#             # Normalize .jpeg to .jpg (optional, but keeps consistency)
-#             if ext == '.jpeg':
-#                 ext = '.jpg'
 #         else:
 #             ext = self._guess_extension(media_bytes)
-#             if ext == '.bin':
-#                 ext = '.png'   # final fallback
 
-#         # Create a temporary file with the correct extension
+#         # Create temp file
 #         temp = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
 #         temp_path = temp.name
-
+        
 #         try:
 #             temp.write(media_bytes)
-#             temp.close()
+#             temp.close() 
 
-#             print(f"[DEBUG] Sending {filename or 'file'}{ext} to Space...")
+#             # FIX: Use 'file_obj' instead of 'image'
 #             result = self.client.predict(
 #                 file_obj=handle_file(temp_path),
 #                 api_name="/predict"
 #             )
-#             print(f"[DEBUG] Space response: {result}")
-#             return result.get("disaster", "Unknown"), result.get("severity", 0.0)
+            
+#             disaster = result.get("disaster", "Unknown")
+#             severity = result.get("severity", 0.0)
+            
+#             return disaster, severity
 
 #         except Exception as e:
-#             print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-#             print(f"CRASH ON SPACE: {e}")
-#             print("Check Hugging Face Space Logs (Logs tab) for details.")
-#             print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-#             return "Server Error", 0.0
-
+#             print(f"AI Model Error: {e}")
+#             return "Detection Error", 0.0
+            
 #         finally:
 #             if os.path.exists(temp_path):
 #                 try:
 #                     os.remove(temp_path)
 #                 except Exception:
-#                     pass
+#                     pass 
 
-# # Singleton instance
+# # Initialize the instance
 # ai_model = AIModel()
+
+
+
+
+
+
+
+
+
+
+
+import os
+import re
+import tempfile
+from gradio_client import Client, handle_file
+
+
+class AIModel:
+
+    def __init__(self):
+        self.client = Client("shamssali/s2")
+
+    def _guess_extension(self, data: bytes) -> str:
+
+        if data.startswith(b'\xff\xd8'):
+            return '.jpg'
+
+        if data.startswith(b'\x89PNG'):
+            return '.png'
+
+        return '.png'
+
+    async def analyze(
+        self,
+        pre_image_bytes: bytes,
+        post_image_bytes: bytes,
+        pre_filename: str = None,
+        post_filename: str = None
+    ):
+
+        pre_ext = (
+            os.path.splitext(pre_filename)[1].lower()
+            if pre_filename and os.path.splitext(pre_filename)[1]
+            else self._guess_extension(pre_image_bytes)
+        )
+
+        post_ext = (
+            os.path.splitext(post_filename)[1].lower()
+            if post_filename and os.path.splitext(post_filename)[1]
+            else self._guess_extension(post_image_bytes)
+        )
+
+        pre_temp = tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=pre_ext
+        )
+
+        post_temp = tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=post_ext
+        )
+
+        pre_temp_path = pre_temp.name
+        post_temp_path = post_temp.name
+
+        try:
+
+            # Save images
+
+            pre_temp.write(pre_image_bytes)
+            pre_temp.close()
+
+            post_temp.write(post_image_bytes)
+            post_temp.close()
+
+            # ------------------------------------------------
+            # HF API CALL
+            # ------------------------------------------------
+
+            result = self.client.predict(
+                pre_image=handle_file(pre_temp_path),
+                post_image=handle_file(post_temp_path),
+                api_name="/predict"
+            )
+
+            print("HF RESPONSE:", result)
+
+            # ------------------------------------------------
+            # IMPORTANT FIX
+            # ------------------------------------------------
+
+            # Get ONLY first text response
+            result_text = result[0]
+
+            # ------------------------------------------------
+            # DAMAGE INTENSITY
+            # ------------------------------------------------
+
+            class_match = re.search(
+                r"Predicted Class\s*:\s*(.+)",
+                result_text
+            )
+
+            damage_intensity = (
+                class_match.group(1).strip()
+                if class_match
+                else "Unknown"
+            )
+
+            # Clean line breaks
+            damage_intensity = damage_intensity.split("\n")[0].strip()
+
+            # ------------------------------------------------
+            # CONFIDENCE
+            # ------------------------------------------------
+
+            confidence_match = re.search(
+                r"Confidence\s*:\s*([\d.]+)",
+                result_text
+            )
+
+            confidence = (
+                float(confidence_match.group(1))
+                if confidence_match
+                else 0.0
+            )
+
+            # ------------------------------------------------
+            # SEVERITY
+            # ------------------------------------------------
+
+            severity_match = re.search(
+                r"Severity\s*:\s*([\d.]+)",
+                result_text
+            )
+
+            severity = (
+                float(severity_match.group(1))
+                if severity_match
+                else 0.0
+            )
+
+            return {
+                "damage_intensity": damage_intensity,
+                "confidence": confidence,
+                "severity": severity
+            }
+
+        except Exception as e:
+
+            print("AI MODEL ERROR:", e)
+
+            return {
+                "damage_intensity": "Detection Error",
+                "confidence": 0.0,
+                "severity": 0.0
+            }
+
+        finally:
+
+            if os.path.exists(pre_temp_path):
+                try:
+                    os.remove(pre_temp_path)
+                except:
+                    pass
+
+            if os.path.exists(post_temp_path):
+                try:
+                    os.remove(post_temp_path)
+                except:
+                    pass
+
+
+ai_model = AIModel()
